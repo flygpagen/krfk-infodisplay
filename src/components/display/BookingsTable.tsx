@@ -28,7 +28,7 @@ const MOCK_BOOKINGS: Booking[] = [
     aircraft: 'PA-28',
     registration: 'SE-KFG',
     pilot: 'Anders Svensson',
-    remarks: 'Training flight',
+    remarks: 'Skolflygning',
     status: 'completed',
   },
   {
@@ -38,7 +38,7 @@ const MOCK_BOOKINGS: Booking[] = [
     aircraft: 'C172',
     registration: 'SE-MKL',
     pilot: 'Erik Johansson',
-    remarks: 'Cross-country',
+    remarks: 'Överlandsflygning',
     status: 'completed',
   },
   {
@@ -57,7 +57,7 @@ const MOCK_BOOKINGS: Booking[] = [
     aircraft: 'C172',
     registration: 'SE-MKL',
     pilot: 'Johan Berg',
-    remarks: 'Solo practice',
+    remarks: 'Soloövning',
     status: 'upcoming',
   },
   {
@@ -67,7 +67,7 @@ const MOCK_BOOKINGS: Booking[] = [
     aircraft: 'Robin DR400',
     registration: 'SE-XYZ',
     pilot: '—',
-    remarks: '100h inspection',
+    remarks: '100-timmarskontroll',
     status: 'maintenance',
   },
 ];
@@ -90,17 +90,17 @@ function getStatusStyles(status: Booking['status']) {
 function getStatusBadge(status: Booking['status']) {
   switch (status) {
     case 'completed':
-      return <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">Completed</span>;
+      return <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">Avslutad</span>;
     case 'active':
       return (
         <span className="text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-400 animate-pulse">
-          ● Active
+          ● Pågående
         </span>
       );
     case 'upcoming':
-      return <span className="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400">Upcoming</span>;
+      return <span className="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400">Kommande</span>;
     case 'maintenance':
-      return <span className="text-xs px-2 py-0.5 rounded bg-orange-500/20 text-orange-400">Maintenance</span>;
+      return <span className="text-xs px-2 py-0.5 rounded bg-orange-500/20 text-orange-400">Underhåll</span>;
     default:
       return null;
   }
@@ -120,9 +120,9 @@ export function BookingsTable() {
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-foreground">Today's Bookings</h2>
+        <h2 className="text-xl font-semibold text-foreground">Dagens bokningar</h2>
         <span className="text-sm text-muted-foreground">
-          {sortedBookings.filter(b => b.status === 'active' || b.status === 'upcoming').length} flights remaining
+          {sortedBookings.filter(b => b.status === 'active' || b.status === 'upcoming').length} flygningar kvar
         </span>
       </div>
       
@@ -130,10 +130,10 @@ export function BookingsTable() {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/30 hover:bg-muted/30">
-              <TableHead className="text-base font-semibold">Time</TableHead>
-              <TableHead className="text-base font-semibold">Aircraft</TableHead>
+              <TableHead className="text-base font-semibold">Tid</TableHead>
+              <TableHead className="text-base font-semibold">Flygplan</TableHead>
               <TableHead className="text-base font-semibold">Pilot</TableHead>
-              <TableHead className="text-base font-semibold">Remarks</TableHead>
+              <TableHead className="text-base font-semibold">Anmärkning</TableHead>
               <TableHead className="text-base font-semibold text-right">Status</TableHead>
             </TableRow>
           </TableHeader>
