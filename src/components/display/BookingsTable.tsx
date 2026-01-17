@@ -7,70 +7,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-
-interface Booking {
-  id: string;
-  time: string;
-  endTime: string;
-  aircraft: string;
-  registration: string;
-  pilot: string;
-  remarks?: string;
-  status: 'completed' | 'active' | 'upcoming' | 'maintenance';
-}
-
-// Mock data - in production this would come from an API
-const MOCK_BOOKINGS: Booking[] = [
-  {
-    id: '1',
-    time: '08:00',
-    endTime: '10:00',
-    aircraft: 'PA-28',
-    registration: 'SE-KFG',
-    pilot: 'Anders Svensson',
-    remarks: 'Skolflygning',
-    status: 'completed',
-  },
-  {
-    id: '2',
-    time: '10:30',
-    endTime: '12:30',
-    aircraft: 'C172',
-    registration: 'SE-MKL',
-    pilot: 'Erik Johansson',
-    remarks: 'Överlandsflygning',
-    status: 'completed',
-  },
-  {
-    id: '3',
-    time: '13:00',
-    endTime: '15:00',
-    aircraft: 'PA-28',
-    registration: 'SE-KFG',
-    pilot: 'Maria Lindqvist',
-    status: 'active',
-  },
-  {
-    id: '4',
-    time: '15:30',
-    endTime: '17:30',
-    aircraft: 'C172',
-    registration: 'SE-MKL',
-    pilot: 'Johan Berg',
-    remarks: 'Soloövning',
-    status: 'upcoming',
-  },
-  {
-    id: '5',
-    time: '09:00',
-    endTime: '17:00',
-    aircraft: 'Robin DR400',
-    registration: 'SE-XYZ',
-    pilot: '—',
-    remarks: '100-timmarskontroll',
-    status: 'maintenance',
-  },
-];
+import { useBookings, type Booking } from '@/hooks/useBookings';
+import { Loader2, AlertCircle } from 'lucide-react';
 
 function getStatusStyles(status: Booking['status']) {
   switch (status) {
@@ -107,23 +45,54 @@ function getStatusBadge(status: Booking['status']) {
 }
 
 export function BookingsTable() {
+  const { bookings, loading, error, lastUpdate } = useBookings();
+
   const sortedBookings = useMemo(() => {
-    return [...MOCK_BOOKINGS].sort((a, b) => {
+    return [...bookings].sort((a, b) => {
       const statusOrder = { active: 0, upcoming: 1, maintenance: 2, completed: 3 };
       if (statusOrder[a.status] !== statusOrder[b.status]) {
         return statusOrder[a.status] - statusOrder[b.status];
       }
       return a.time.localeCompare(b.time);
     });
-  }, []);
+  }, [bookings]);
+
+  const remainingFlights = sortedBookings.filter(
+    b => b.status === 'active' || b.status === 'upcoming'
+  ).length;
+
+  if (loading && bookings.length === 0) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center gap-3">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <span className="text-muted-foreground">Laddar bokningar...</span>
+      </div>
+    );
+  }
+
+  if (error && bookings.length === 0) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center gap-3">
+        <AlertCircle className="w-8 h-8 text-destructive" />
+        <span className="text-muted-foreground">{error}</span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold text-foreground">Dagens bokningar</h2>
-        <span className="text-sm text-muted-foreground">
-          {sortedBookings.filter(b => b.status === 'active' || b.status === 'upcoming').length} flygningar kvar
-        </span>
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-muted-foreground">
+            {remainingFlights} flygningar kvar
+          </span>
+          {lastUpdate && (
+            <span className="text-xs text-muted-foreground">
+              Uppdaterad {lastUpdate.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
+        </div>
       </div>
       
       <div className="flex-1 overflow-auto rounded-lg border border-border/50">
@@ -138,25 +107,30 @@ export function BookingsTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedBookings.map((booking) => (
-              <TableRow 
-                key={booking.id} 
-                className={`${getStatusStyles(booking.status)} transition-colors`}
-              >
-                <TableCell className="font-mono text-lg">
-                  {booking.time} - {booking.endTime}
+            {sortedBookings.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                  Inga bokningar idag
                 </TableCell>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span className="font-semibold text-lg">{booking.registration}</span>
-                    <span className="text-sm text-muted-foreground">{booking.aircraft}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-lg">{booking.pilot}</TableCell>
-                <TableCell className="text-muted-foreground">{booking.remarks || '—'}</TableCell>
-                <TableCell className="text-right">{getStatusBadge(booking.status)}</TableCell>
               </TableRow>
-            ))}
+            ) : (
+              sortedBookings.map((booking) => (
+                <TableRow 
+                  key={booking.id} 
+                  className={`${getStatusStyles(booking.status)} transition-colors`}
+                >
+                  <TableCell className="font-mono text-lg">
+                    {booking.time}
+                  </TableCell>
+                  <TableCell>
+                    <span className="font-semibold text-lg">{booking.aircraft}</span>
+                  </TableCell>
+                  <TableCell className="text-lg">{booking.pilot}</TableCell>
+                  <TableCell className="text-muted-foreground">{booking.remark || '—'}</TableCell>
+                  <TableCell className="text-right">{getStatusBadge(booking.status)}</TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
