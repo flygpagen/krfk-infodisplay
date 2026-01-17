@@ -16,8 +16,8 @@ function WindIndicator({ direction, speed, gust }: { direction: number | 'VRB'; 
         <div className="absolute inset-0 rounded-full border-2 border-border/50">
           <span className="absolute top-1 left-1/2 -translate-x-1/2 text-xs text-muted-foreground">N</span>
           <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-xs text-muted-foreground">S</span>
-          <span className="absolute left-1 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">W</span>
-          <span className="absolute right-1 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">E</span>
+          <span className="absolute left-1 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">V</span>
+          <span className="absolute right-1 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">Ö</span>
         </div>
         {/* Wind arrow */}
         {direction !== 'VRB' && (
@@ -43,11 +43,11 @@ function WindIndicator({ direction, speed, gust }: { direction: number | 'VRB'; 
         </div>
         {gust && (
           <div className="text-orange-400 font-semibold">
-            Gusts {gust} m/s
+            Byar {gust} m/s
           </div>
         )}
         <span className="text-sm text-muted-foreground">
-          {direction === 'VRB' ? 'Variable' : `${direction}° (${getWindDirectionName(direction)})`}
+          {direction === 'VRB' ? 'Variabel' : `${direction}° (${getWindDirectionName(direction)})`}
         </span>
       </div>
     </div>
@@ -98,19 +98,19 @@ export function WeatherPanel() {
 
   const cloudDesc = metar.clouds.length > 0 
     ? metar.clouds.map(c => `${c.cover}${c.altitude > 0 ? ` ${c.altitude}ft` : ''}`).join(', ')
-    : 'Clear';
+    : 'Klart';
 
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <h2 className="text-xl font-semibold text-foreground">Weather</h2>
+          <h2 className="text-xl font-semibold text-foreground">Väder</h2>
           <span className={`text-lg font-bold px-3 py-1 rounded ${getFlightCategoryColor(metar.flightCategory)} bg-current/10`}>
             {metar.flightCategory}
           </span>
         </div>
         <span className="text-sm text-muted-foreground">
-          Updated {lastUpdate.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}
+          Uppdaterad {lastUpdate.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}
         </span>
       </div>
 
@@ -119,7 +119,7 @@ export function WeatherPanel() {
         <div className="p-4 rounded-lg border border-border/50 bg-card/50">
           <div className="flex items-center gap-2 mb-3">
             <Wind className="w-5 h-5 text-primary" />
-            <span className="font-semibold">Wind</span>
+            <span className="font-semibold">Vind</span>
           </div>
           {metar.wind ? (
             <WindIndicator 
@@ -128,7 +128,7 @@ export function WeatherPanel() {
               gust={metar.wind.gust} 
             />
           ) : (
-            <span className="text-muted-foreground">Calm</span>
+            <span className="text-muted-foreground">Lugnt</span>
           )}
         </div>
 
@@ -136,19 +136,19 @@ export function WeatherPanel() {
         <div className="grid grid-cols-2 gap-3">
           <WeatherStat 
             icon={Eye} 
-            label="Visibility" 
+            label="Sikt" 
             value={metar.visibility}
           />
           <WeatherStat 
             icon={Cloud} 
-            label="Clouds" 
+            label="Moln" 
             value={cloudDesc}
           />
           <WeatherStat 
             icon={Thermometer} 
-            label="Temperature" 
+            label="Temperatur" 
             value={`${metar.temperature}°C`}
-            subValue={`Dewpoint ${metar.dewpoint}°C`}
+            subValue={`Daggpunkt ${metar.dewpoint}°C`}
           />
           <WeatherStat 
             icon={Gauge} 

@@ -17,7 +17,7 @@ export function Header() {
     second: '2-digit',
     timeZone: 'Europe/Stockholm',
   });
-  const dateStr = time.toLocaleDateString('en-GB', {
+  const dateStr = time.toLocaleDateString('sv-SE', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -34,17 +34,17 @@ export function Header() {
         <div className="h-12 w-px bg-border/50" />
         <div className="flex flex-col">
           <span className="text-lg font-semibold text-accent-foreground">ESMK</span>
-          <span className="text-xs text-muted-foreground">Kristianstad Airport</span>
+          <span className="text-xs text-muted-foreground">Kristianstad Flygplats</span>
         </div>
       </div>
 
       <div className="text-center">
-        <div className="text-sm text-muted-foreground">{dateStr}</div>
+        <div className="text-sm text-muted-foreground capitalize">{dateStr}</div>
       </div>
 
       <div className="flex items-center gap-8">
         <div className="text-right">
-          <div className="text-sm text-muted-foreground">Local</div>
+          <div className="text-sm text-muted-foreground">Lokal</div>
           <div className="text-2xl font-mono font-semibold">{localTime}</div>
         </div>
         <div className="h-12 w-px bg-border/50" />
