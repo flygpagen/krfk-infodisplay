@@ -1,10 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Wind, Eye, Thermometer, Gauge, Cloud } from 'lucide-react';
-import { decodeMetar, getFlightCategoryColor, getWindDirectionName, type DecodedMetar } from '@/utils/weatherDecoder';
-
-// Demo METAR - in production, fetch from aviation weather API
-const DEMO_METAR = 'ESMK 171350Z 24012G18KT 9999 FEW040 SCT080 12/05 Q1018';
-const DEMO_TAF = 'ESMK 171100Z 1712/1812 25010KT 9999 SCT040 TEMPO 1714/1718 25015G25KT';
+import { Wind, Eye, Thermometer, Gauge, Cloud, Loader2, AlertCircle } from 'lucide-react';
+import { getFlightCategoryColor, getWindDirectionName } from '@/utils/weatherDecoder';
+import { useWeather } from '@/hooks/useWeather';
 
 function WindIndicator({ direction, speed, gust }: { direction: number | 'VRB'; speed: number; gust?: number }) {
   const rotation = direction === 'VRB' ? 0 : direction;
@@ -39,11 +35,11 @@ function WindIndicator({ direction, speed, gust }: { direction: number | 'VRB'; 
       <div className="flex flex-col">
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold">{speed}</span>
-          <span className="text-lg text-muted-foreground">m/s</span>
+          <span className="text-lg text-muted-foreground">kt</span>
         </div>
         {gust && (
           <div className="text-orange-400 font-semibold">
-            Byar {gust} m/s
+            Byar {gust} kt
           </div>
         )}
         <span className="text-sm text-muted-foreground">
@@ -73,24 +69,25 @@ function WeatherStat({ icon: Icon, label, value, subValue }: {
 }
 
 export function WeatherPanel() {
-  const [metar, setMetar] = useState<DecodedMetar | null>(null);
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const { metar, metarRaw, tafRaw, loading, error, lastUpdate } = useWeather();
 
-  useEffect(() => {
-    // Decode demo METAR
-    const decoded = decodeMetar(DEMO_METAR);
-    setMetar(decoded);
-    setLastUpdate(new Date());
-    
-    // In production, fetch real data every 5 minutes
-    const interval = setInterval(() => {
-      const decoded = decodeMetar(DEMO_METAR);
-      setMetar(decoded);
-      setLastUpdate(new Date());
-    }, 5 * 60 * 1000);
-    
-    return () => clearInterval(interval);
-  }, []);
+  if (loading && !metar) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center gap-3">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <span className="text-muted-foreground">Laddar väderdata...</span>
+      </div>
+    );
+  }
+
+  if (error && !metar) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center gap-3">
+        <AlertCircle className="w-8 h-8 text-destructive" />
+        <span className="text-muted-foreground">{error}</span>
+      </div>
+    );
+  }
 
   if (!metar) {
     return <div className="animate-pulse bg-muted/20 rounded-lg h-full" />;
@@ -109,9 +106,11 @@ export function WeatherPanel() {
             {metar.flightCategory}
           </span>
         </div>
-        <span className="text-sm text-muted-foreground">
-          Uppdaterad {lastUpdate.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}
-        </span>
+        {lastUpdate && (
+          <span className="text-sm text-muted-foreground">
+            Uppdaterad {lastUpdate.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}
+          </span>
+        )}
       </div>
 
       <div className="flex-1 space-y-4">
@@ -162,11 +161,11 @@ export function WeatherPanel() {
         <div className="mt-4 space-y-2">
           <div className="p-2 rounded bg-muted/30 font-mono text-xs">
             <span className="text-muted-foreground">METAR: </span>
-            <span className="text-foreground">{DEMO_METAR}</span>
+            <span className="text-foreground">{metarRaw || 'Ej tillgängligt'}</span>
           </div>
           <div className="p-2 rounded bg-muted/30 font-mono text-xs">
             <span className="text-muted-foreground">TAF: </span>
-            <span className="text-foreground">{DEMO_TAF}</span>
+            <span className="text-foreground">{tafRaw || 'Ej tillgängligt'}</span>
           </div>
         </div>
       </div>
