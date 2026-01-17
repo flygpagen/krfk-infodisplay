@@ -25,32 +25,32 @@ export function Header() {
   });
 
   return (
-    <header className="flex items-center justify-between px-8 py-4 border-b border-border/50 bg-gradient-to-r from-background to-card">
-      <div className="flex items-center gap-6">
+    <header className="flex items-center justify-between px-6 lg:px-10 py-3 lg:py-5 border-b border-border/50 bg-gradient-to-r from-background to-card">
+      <div className="flex items-center gap-4 lg:gap-8">
         <div className="flex flex-col">
-          <span className="text-3xl font-bold tracking-wider text-primary">KRFK</span>
-          <span className="text-sm text-muted-foreground">Kristianstad Flygklubb</span>
+          <span className="text-2xl lg:text-5xl font-bold tracking-wider text-primary">KRFK</span>
+          <span className="text-xs lg:text-base text-muted-foreground">Kristianstad Flygklubb</span>
         </div>
-        <div className="h-12 w-px bg-border/50" />
+        <div className="h-10 lg:h-16 w-px bg-border/50" />
         <div className="flex flex-col">
-          <span className="text-lg font-semibold text-accent-foreground">ESMK</span>
-          <span className="text-xs text-muted-foreground">Kristianstad Flygplats</span>
+          <span className="text-base lg:text-2xl font-semibold text-accent-foreground">ESMK</span>
+          <span className="text-xs lg:text-sm text-muted-foreground">Kristianstad Flygplats</span>
         </div>
       </div>
 
-      <div className="text-center">
-        <div className="text-sm text-muted-foreground capitalize">{dateStr}</div>
+      <div className="text-center hidden lg:block">
+        <div className="text-base lg:text-xl text-muted-foreground capitalize">{dateStr}</div>
       </div>
 
-      <div className="flex items-center gap-8">
+      <div className="flex items-center gap-4 lg:gap-10">
         <div className="text-right">
-          <div className="text-sm text-muted-foreground">Lokal</div>
-          <div className="text-2xl font-mono font-semibold">{localTime}</div>
+          <div className="text-xs lg:text-base text-muted-foreground">Lokal</div>
+          <div className="text-xl lg:text-4xl font-mono font-semibold">{localTime}</div>
         </div>
-        <div className="h-12 w-px bg-border/50" />
+        <div className="h-10 lg:h-16 w-px bg-border/50" />
         <div className="text-right">
-          <div className="text-sm text-muted-foreground">UTC</div>
-          <div className="text-4xl font-mono font-bold text-primary tracking-wider">{utcTime}Z</div>
+          <div className="text-xs lg:text-base text-muted-foreground">UTC</div>
+          <div className="text-3xl lg:text-6xl font-mono font-bold text-primary tracking-wider">{utcTime}Z</div>
         </div>
       </div>
     </header>

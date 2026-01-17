@@ -101,3 +101,36 @@
 * {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Kiosk mode for 1440x1080 display */
+.kiosk {
+  width: 1440px;
+  height: 1080px;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Hide cursor after inactivity */
+.kiosk.cursor-hidden {
+  cursor: none;
+}
+
+/* Disable context menu for kiosk */
+.kiosk * {
+  -webkit-touch-callout: none;
+}
+
+/* Responsive fallback for smaller screens */
+@media (max-width: 1439px) {
+  .kiosk {
+    width: 100vw;
+    height: 100vh;
+  }
+}
+
+@media (max-width: 1023px) {
+  .kiosk {
+    overflow-y: auto;
+  }
+}
