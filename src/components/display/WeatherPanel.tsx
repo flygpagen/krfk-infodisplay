@@ -6,43 +6,43 @@ function WindIndicator({ direction, speed, gust }: { direction: number | 'VRB'; 
   const rotation = direction === 'VRB' ? 0 : direction;
   
   return (
-    <div className="flex items-center gap-4">
-      <div className="relative w-20 h-20">
+    <div className="flex items-center gap-4 lg:gap-6">
+      <div className="relative w-24 h-24 lg:w-32 lg:h-32">
         {/* Compass rose */}
         <div className="absolute inset-0 rounded-full border-2 border-border/50">
-          <span className="absolute top-1 left-1/2 -translate-x-1/2 text-xs text-muted-foreground">N</span>
-          <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-xs text-muted-foreground">S</span>
-          <span className="absolute left-1 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">V</span>
-          <span className="absolute right-1 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">Ö</span>
+          <span className="absolute top-1 lg:top-2 left-1/2 -translate-x-1/2 text-sm lg:text-base text-muted-foreground">N</span>
+          <span className="absolute bottom-1 lg:bottom-2 left-1/2 -translate-x-1/2 text-sm lg:text-base text-muted-foreground">S</span>
+          <span className="absolute left-1 lg:left-2 top-1/2 -translate-y-1/2 text-sm lg:text-base text-muted-foreground">V</span>
+          <span className="absolute right-1 lg:right-2 top-1/2 -translate-y-1/2 text-sm lg:text-base text-muted-foreground">Ö</span>
         </div>
         {/* Wind arrow */}
         {direction !== 'VRB' && (
           <div 
-            className="absolute inset-2 flex items-center justify-center transition-transform duration-1000"
+            className="absolute inset-3 lg:inset-4 flex items-center justify-center transition-transform duration-1000"
             style={{ transform: `rotate(${rotation}deg)` }}
           >
-            <div className="w-1 h-full bg-gradient-to-b from-primary to-transparent rounded-full" />
-            <div className="absolute top-0 w-0 h-0 border-l-[6px] border-r-[6px] border-b-[10px] border-l-transparent border-r-transparent border-b-primary" />
+            <div className="w-1.5 h-full bg-gradient-to-b from-primary to-transparent rounded-full" />
+            <div className="absolute top-0 w-0 h-0 border-l-[8px] border-r-[8px] border-b-[14px] border-l-transparent border-r-transparent border-b-primary" />
           </div>
         )}
         {direction === 'VRB' && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-xs text-muted-foreground">VRB</span>
+            <span className="text-base lg:text-lg text-muted-foreground">VRB</span>
           </div>
         )}
       </div>
       
       <div className="flex flex-col">
         <div className="flex items-baseline gap-2">
-          <span className="text-3xl font-bold">{speed}</span>
-          <span className="text-lg text-muted-foreground">kt</span>
+          <span className="text-4xl lg:text-6xl font-bold">{speed}</span>
+          <span className="text-xl lg:text-2xl text-muted-foreground">kt</span>
         </div>
         {gust && (
-          <div className="text-orange-400 font-semibold">
+          <div className="text-lg lg:text-xl text-orange-400 font-semibold">
             Byar {gust} kt
           </div>
         )}
-        <span className="text-sm text-muted-foreground">
+        <span className="text-base lg:text-lg text-muted-foreground">
           {direction === 'VRB' ? 'Variabel' : `${direction}° (${getWindDirectionName(direction)})`}
         </span>
       </div>
@@ -57,12 +57,12 @@ function WeatherStat({ icon: Icon, label, value, subValue }: {
   subValue?: string;
 }) {
   return (
-    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/20">
-      <Icon className="w-6 h-6 text-primary" />
+    <div className="flex items-center gap-3 lg:gap-4 p-3 lg:p-4 rounded-lg bg-muted/20">
+      <Icon className="w-7 h-7 lg:w-9 lg:h-9 text-primary" />
       <div className="flex flex-col">
-        <span className="text-xs text-muted-foreground uppercase tracking-wider">{label}</span>
-        <span className="text-xl font-semibold">{value}</span>
-        {subValue && <span className="text-sm text-muted-foreground">{subValue}</span>}
+        <span className="text-xs lg:text-sm text-muted-foreground uppercase tracking-wider">{label}</span>
+        <span className="text-xl lg:text-3xl font-semibold">{value}</span>
+        {subValue && <span className="text-sm lg:text-base text-muted-foreground">{subValue}</span>}
       </div>
     </div>
   );
@@ -73,18 +73,18 @@ export function WeatherPanel() {
 
   if (loading && !metar) {
     return (
-      <div className="flex flex-col h-full items-center justify-center gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        <span className="text-muted-foreground">Laddar väderdata...</span>
+      <div className="flex flex-col h-full items-center justify-center gap-4">
+        <Loader2 className="w-10 h-10 lg:w-14 lg:h-14 animate-spin text-primary" />
+        <span className="text-lg lg:text-2xl text-muted-foreground">Laddar väderdata...</span>
       </div>
     );
   }
 
   if (error && !metar) {
     return (
-      <div className="flex flex-col h-full items-center justify-center gap-3">
-        <AlertCircle className="w-8 h-8 text-destructive" />
-        <span className="text-muted-foreground">{error}</span>
+      <div className="flex flex-col h-full items-center justify-center gap-4">
+        <AlertCircle className="w-10 h-10 lg:w-14 lg:h-14 text-destructive" />
+        <span className="text-lg lg:text-2xl text-muted-foreground">{error}</span>
       </div>
     );
   }
@@ -99,26 +99,26 @@ export function WeatherPanel() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <h2 className="text-xl font-semibold text-foreground">Väder</h2>
-          <span className={`text-lg font-bold px-3 py-1 rounded ${getFlightCategoryColor(metar.flightCategory)} bg-current/10`}>
+      <div className="flex items-center justify-between mb-3 lg:mb-5">
+        <div className="flex items-center gap-3 lg:gap-4">
+          <h2 className="text-xl lg:text-3xl font-semibold text-foreground">Väder</h2>
+          <span className={`text-lg lg:text-2xl font-bold px-3 lg:px-4 py-1 lg:py-2 rounded ${getFlightCategoryColor(metar.flightCategory)} bg-current/10`}>
             {metar.flightCategory}
           </span>
         </div>
         {lastUpdate && (
-          <span className="text-sm text-muted-foreground">
+          <span className="text-sm lg:text-base text-muted-foreground">
             Uppdaterad {lastUpdate.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}
           </span>
         )}
       </div>
 
-      <div className="flex-1 space-y-4">
+      <div className="flex-1 space-y-3 lg:space-y-4">
         {/* Wind section */}
-        <div className="p-4 rounded-lg border border-border/50 bg-card/50">
-          <div className="flex items-center gap-2 mb-3">
-            <Wind className="w-5 h-5 text-primary" />
-            <span className="font-semibold">Vind</span>
+        <div className="p-4 lg:p-5 rounded-lg border border-border/50 bg-card/50">
+          <div className="flex items-center gap-2 mb-3 lg:mb-4">
+            <Wind className="w-6 h-6 lg:w-7 lg:h-7 text-primary" />
+            <span className="text-lg lg:text-xl font-semibold">Vind</span>
           </div>
           {metar.wind ? (
             <WindIndicator 
@@ -127,12 +127,12 @@ export function WeatherPanel() {
               gust={metar.wind.gust} 
             />
           ) : (
-            <span className="text-muted-foreground">Lugnt</span>
+            <span className="text-lg lg:text-xl text-muted-foreground">Lugnt</span>
           )}
         </div>
 
         {/* Weather stats grid */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2 lg:gap-3">
           <WeatherStat 
             icon={Eye} 
             label="Sikt" 
@@ -158,14 +158,14 @@ export function WeatherPanel() {
         </div>
 
         {/* Raw METAR/TAF */}
-        <div className="mt-4 space-y-2">
-          <div className="p-2 rounded bg-muted/30 font-mono text-xs">
+        <div className="mt-3 lg:mt-4 space-y-2">
+          <div className="p-2 lg:p-3 rounded bg-muted/30 font-mono text-xs lg:text-sm">
             <span className="text-muted-foreground">METAR: </span>
-            <span className="text-foreground">{metarRaw || 'Ej tillgängligt'}</span>
+            <span className="text-foreground break-all">{metarRaw || 'Ej tillgängligt'}</span>
           </div>
-          <div className="p-2 rounded bg-muted/30 font-mono text-xs">
+          <div className="p-2 lg:p-3 rounded bg-muted/30 font-mono text-xs lg:text-sm">
             <span className="text-muted-foreground">TAF: </span>
-            <span className="text-foreground">{tafRaw || 'Ej tillgängligt'}</span>
+            <span className="text-foreground break-all">{tafRaw || 'Ej tillgängligt'}</span>
           </div>
         </div>
       </div>
