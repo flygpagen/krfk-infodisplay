@@ -99,17 +99,20 @@ export function useWeather(refreshInterval = 5 * 60 * 1000): UseWeatherResult {
       setError(null);
     } catch (err) {
       console.error('Failed to fetch weather:', err);
-      // Use demo data as fallback
-      if (!metar) {
-        setMetarRaw(DEMO_METAR);
-        setTafRaw(DEMO_TAF);
-        setMetar(decodeMetar(DEMO_METAR));
-        setLastUpdate(new Date());
-      }
+      // Use demo data as fallback on first load only
+      setMetar(prev => {
+        if (!prev) {
+          setMetarRaw(DEMO_METAR);
+          setTafRaw(DEMO_TAF);
+          setLastUpdate(new Date());
+          return decodeMetar(DEMO_METAR);
+        }
+        return prev;
+      });
     } finally {
       setLoading(false);
     }
-  }, [metar]);
+  }, []);
 
   useEffect(() => {
     fetchWeather();
@@ -117,7 +120,7 @@ export function useWeather(refreshInterval = 5 * 60 * 1000): UseWeatherResult {
     const interval = setInterval(fetchWeather, refreshInterval);
     
     return () => clearInterval(interval);
-  }, [fetchWeather, refreshInterval]);
+  }, [refreshInterval]);
 
   return {
     metar,

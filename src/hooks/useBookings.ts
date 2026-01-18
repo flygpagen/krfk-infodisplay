@@ -58,6 +58,7 @@ export function useBookings(refreshInterval = 2 * 60 * 1000): UseBookingsResult 
         setBookings(DEMO_BOOKINGS);
         setLastUpdate(new Date());
         setError(null);
+        setLoading(false);
         return;
       }
       
@@ -68,15 +69,18 @@ export function useBookings(refreshInterval = 2 * 60 * 1000): UseBookingsResult 
       setError(null);
     } catch (err) {
       console.error('Failed to fetch bookings:', err);
-      // Use demo data as fallback
-      if (bookings.length === 0) {
-        setBookings(DEMO_BOOKINGS);
-        setLastUpdate(new Date());
-      }
+      // Use demo data as fallback on first load only
+      setBookings(prev => {
+        if (prev.length === 0) {
+          setLastUpdate(new Date());
+          return DEMO_BOOKINGS;
+        }
+        return prev;
+      });
     } finally {
       setLoading(false);
     }
-  }, [bookings.length]);
+  }, []);
 
   useEffect(() => {
     fetchBookings();
@@ -84,7 +88,7 @@ export function useBookings(refreshInterval = 2 * 60 * 1000): UseBookingsResult 
     const interval = setInterval(fetchBookings, refreshInterval);
     
     return () => clearInterval(interval);
-  }, [fetchBookings, refreshInterval]);
+  }, [refreshInterval]);
 
   return {
     bookings,
