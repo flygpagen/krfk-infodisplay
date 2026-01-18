@@ -38,6 +38,7 @@ function callMyWebLogAPI($qtype, $username, $authtoken, $postData = []) {
             'qtype: ' . $qtype,
             'username: ' . $username,
             'authtoken: ' . $authtoken,
+            'apiver: 3.1',
         ],
         CURLOPT_TIMEOUT => 15,
     ]);
