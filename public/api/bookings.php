@@ -2,6 +2,7 @@
 /**
  * PHP proxy for MyWebLog bookings
  * Fetches booking data and returns structured JSON
+ * Parses Markdown-style table format from infoscreen.php
  */
 
 header('Content-Type: application/json');
@@ -20,40 +21,64 @@ if ($response === false) {
     exit;
 }
 
-// Parse the document.writeln statements to extract table rows
+// Parse the Markdown-style table format
+// Format: | Time | Aircraft | Pilot | Booking Type | Remark |
 $bookings = [];
 
-// Match all document.writeln statements containing table rows
-preg_match_all('/document\.writeln\s*\(\s*["\'](.+?)["\']\s*\)/s', $response, $matches);
+// Match pipe-separated table rows
+preg_match_all('/^\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|/m', $response, $matches, PREG_SET_ORDER);
 
-foreach ($matches[1] as $line) {
-    // Skip header rows and empty lines
-    if (strpos($line, '<th') !== false || strpos($line, '<tr') === false) {
+foreach ($matches as $match) {
+    $time = trim($match[1]);
+    $aircraft = trim($match[2]);
+    $pilot = trim($match[3]);
+    $bookingType = trim($match[4]);
+    $remark = trim($match[5]);
+    
+    // Clean up escape characters
+    $time = str_replace('\\-', '-', $time);
+    $bookingType = str_replace('\\-', '-', $bookingType);
+    $remark = str_replace('\\-', '-', $remark);
+    
+    // Skip header rows and separator rows
+    if ($time === 'Tid' || $time === 'Time' || 
+        strpos($time, '---') !== false || 
+        strpos($time, ':--') !== false ||
+        $aircraft === 'Reg' || $aircraft === 'Aircraft') {
         continue;
     }
     
-    // Extract table cells - handle both <td> and <td class="...">
-    preg_match_all('/<td[^>]*>([^<]*)<\/td>/i', $line, $cells);
+    // Calculate status
+    $status = 'upcoming';
+    $now = new DateTime('now', new DateTimeZone('Europe/Stockholm'));
+    $currentHour = (int)$now->format('H');
+    $currentMinute = (int)$now->format('i');
+    $currentMinutes = $currentHour * 60 + $currentMinute;
     
-    if (count($cells[1]) >= 4) {
-        $time = trim($cells[1][0]);
-        $aircraft = trim($cells[1][1]);
-        $pilot = trim($cells[1][2]);
-        $remark = isset($cells[1][3]) ? trim($cells[1][3]) : '';
-        
-        // Skip empty rows
-        if (empty($time) && empty($aircraft)) {
-            continue;
-        }
-        
-        // Calculate status based on current time
-        $status = 'upcoming';
-        $now = new DateTime('now', new DateTimeZone('Europe/Stockholm'));
-        $currentHour = (int)$now->format('H');
-        $currentMinute = (int)$now->format('i');
-        $currentMinutes = $currentHour * 60 + $currentMinute;
-        
-        // Parse time range (e.g., "09:00-11:00" or "09:00 - 11:00")
+    // Handle all-day bookings (N/A time or "ALL DAY" in booking type)
+    $isAllDay = ($time === 'N/A' || stripos($bookingType, 'ALL DAY') !== false);
+    
+    if ($isAllDay) {
+        $displayTime = 'Heldag';
+    } else {
+        $displayTime = $time;
+    }
+    
+    // Check for maintenance/service keywords
+    $remarkLower = strtolower($remark);
+    $bookingTypeLower = strtolower($bookingType);
+    
+    if (strpos($remarkLower, 'maintenance') !== false || 
+        strpos($remarkLower, 'underhåll') !== false ||
+        strpos($remarkLower, 'kontroll') !== false ||
+        strpos($remarkLower, 'service') !== false ||
+        strpos($bookingTypeLower, 'maintenance') !== false) {
+        $status = 'maintenance';
+    } elseif (strpos($bookingTypeLower, 'reserved') !== false ||
+              strpos($bookingTypeLower, 'reserverad') !== false) {
+        $status = 'reserved';
+    } elseif (!$isAllDay) {
+        // Parse time range for regular bookings (e.g., "09:00-11:00" or "09:00 - 11:00")
         if (preg_match('/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})/', $time, $timeMatch)) {
             $startMinutes = (int)$timeMatch[1] * 60 + (int)$timeMatch[2];
             $endMinutes = (int)$timeMatch[3] * 60 + (int)$timeMatch[4];
@@ -64,25 +89,16 @@ foreach ($matches[1] as $line) {
                 $status = 'active';
             }
         }
-        
-        // Check for maintenance keywords
-        $remarkLower = strtolower($remark);
-        if (strpos($remarkLower, 'underhåll') !== false || 
-            strpos($remarkLower, 'kontroll') !== false ||
-            strpos($remarkLower, 'service') !== false ||
-            strpos($remarkLower, 'maintenance') !== false) {
-            $status = 'maintenance';
-        }
-        
-        $bookings[] = [
-            'id' => uniqid(),
-            'time' => $time,
-            'aircraft' => $aircraft,
-            'pilot' => $pilot,
-            'remark' => $remark,
-            'status' => $status
-        ];
     }
+    
+    $bookings[] = [
+        'id' => uniqid(),
+        'time' => $displayTime,
+        'aircraft' => $aircraft,
+        'pilot' => $pilot,
+        'remark' => $remark ?: $bookingType,
+        'status' => $status
+    ];
 }
 
 echo json_encode([
