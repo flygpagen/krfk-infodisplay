@@ -3,7 +3,8 @@ import { getFlightCategoryColor, getWindDirectionName } from '@/utils/weatherDec
 import { useWeather } from '@/hooks/useWeather';
 
 function WindIndicator({ direction, speed, gust }: { direction: number | 'VRB'; speed: number; gust?: number }) {
-  const rotation = direction === 'VRB' ? 0 : direction;
+  // Add 180° to show where wind is blowing TO (arrow points downwind)
+  const rotation = direction === 'VRB' ? 0 : (direction + 180) % 360;
   
   return (
     <div className="flex items-center gap-4 lg:gap-6">
@@ -93,9 +94,15 @@ export function WeatherPanel() {
     return <div className="animate-pulse bg-muted/20 rounded-lg h-full" />;
   }
 
+  // Find the ceiling (lowest BKN or OVC layer) or show most significant layer
+  const ceilingLayer = metar.clouds.find(c => c.cover === 'BKN' || c.cover === 'OVC');
   const cloudDesc = metar.clouds.length > 0 
-    ? metar.clouds.map(c => `${c.cover}${c.altitude > 0 ? ` ${c.altitude}ft` : ''}`).join(', ')
-    : 'Klart';
+    ? ceilingLayer 
+      ? `${ceilingLayer.cover} ${ceilingLayer.altitude}ft`
+      : metar.clouds[0].altitude > 0 
+        ? `${metar.clouds[0].cover} ${metar.clouds[0].altitude}ft`
+        : metar.clouds[0].cover
+    : 'CAVOK';
 
   return (
     <div className="flex flex-col h-full">
