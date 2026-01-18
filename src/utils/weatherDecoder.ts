@@ -26,14 +26,14 @@ export interface DecodedMetar {
 }
 
 const CLOUD_COVER_MAP: Record<string, string> = {
-  'FEW': 'Few',
-  'SCT': 'Scattered',
-  'BKN': 'Broken',
-  'OVC': 'Overcast',
-  'SKC': 'Clear',
-  'CLR': 'Clear',
-  'NSC': 'No Significant Cloud',
-  'NCD': 'No Cloud Detected',
+  'FEW': 'Få',
+  'SCT': 'Spridda',
+  'BKN': 'Brutet',
+  'OVC': 'Täckt',
+  'SKC': 'Klart',
+  'CLR': 'Klart',
+  'NSC': 'Obetydligt',
+  'NCD': 'Inga moln',
   'CAVOK': 'CAVOK',
 };
 
@@ -85,7 +85,7 @@ export function decodeMetar(metar: string): DecodedMetar {
       continue;
     }
     
-    // Wind
+    // Wind - keep in knots (convert MPS to KT if needed)
     if (/^(VRB|\d{3})(\d{2,3})(G\d{2,3})?(KT|MPS)$/.test(part)) {
       const match = part.match(/^(VRB|\d{3})(\d{2,3})(G(\d{2,3}))?(KT|MPS)$/);
       if (match) {
@@ -95,9 +95,9 @@ export function decodeMetar(metar: string): DecodedMetar {
         const unit = match[5];
         wind = {
           direction: dir,
-          speed: unit === 'MPS' ? spd : Math.round(spd * 0.514),
-          gust: gust ? (unit === 'MPS' ? gust : Math.round(gust * 0.514)) : undefined,
-          unit: 'm/s',
+          speed: unit === 'MPS' ? Math.round(spd * 1.944) : spd,
+          gust: gust ? (unit === 'MPS' ? Math.round(gust * 1.944) : gust) : undefined,
+          unit: 'kt',
         };
       }
       continue;
@@ -153,8 +153,8 @@ export function decodeMetar(metar: string): DecodedMetar {
     }
   }
   
-  // Calculate flight category
-  const ceiling = clouds.find(c => c.cover === 'Broken' || c.cover === 'Overcast')?.altitude || 99999;
+  // Calculate flight category (use Swedish cloud cover names)
+  const ceiling = clouds.find(c => c.cover === 'Brutet' || c.cover === 'Täckt')?.altitude || 99999;
   let flightCategory: DecodedMetar['flightCategory'] = 'VFR';
   
   if (visibilityMeters < 1600 || ceiling < 500) {
