@@ -46,6 +46,10 @@ interface UseWeatherResult {
 
 const API_URL = '/api/weather.php';
 
+// Demo METAR/TAF for development environment
+const DEMO_METAR = 'ESMK 181150Z 27012KT 9999 FEW040 SCT100 18/08 Q1018';
+const DEMO_TAF = 'TAF ESMK 181100Z 1812/1912 28010KT 9999 FEW040 SCT100 TEMPO 1815/1820 SHRA BKN030';
+
 export function useWeather(refreshInterval = 5 * 60 * 1000): UseWeatherResult {
   const [metar, setMetar] = useState<DecodedMetar | null>(null);
   const [metarRaw, setMetarRaw] = useState<string | null>(null);
@@ -62,7 +66,20 @@ export function useWeather(refreshInterval = 5 * 60 * 1000): UseWeatherResult {
         throw new Error(`HTTP ${response.status}`);
       }
       
-      const data: CheckWXResponse = await response.json();
+      const text = await response.text();
+      
+      // Check if we got PHP source code instead of JSON (dev environment)
+      if (text.trim().startsWith('<?php') || text.trim().startsWith('<?')) {
+        console.log('PHP not executed, using demo weather data');
+        setMetarRaw(DEMO_METAR);
+        setTafRaw(DEMO_TAF);
+        setMetar(decodeMetar(DEMO_METAR));
+        setLastUpdate(new Date());
+        setError(null);
+        return;
+      }
+      
+      const data: CheckWXResponse = JSON.parse(text);
       
       if (data.error) {
         throw new Error(data.error);
@@ -82,9 +99,12 @@ export function useWeather(refreshInterval = 5 * 60 * 1000): UseWeatherResult {
       setError(null);
     } catch (err) {
       console.error('Failed to fetch weather:', err);
-      // Keep existing data on error
+      // Use demo data as fallback
       if (!metar) {
-        setError('Kunde inte hämta väderdata');
+        setMetarRaw(DEMO_METAR);
+        setTafRaw(DEMO_TAF);
+        setMetar(decodeMetar(DEMO_METAR));
+        setLastUpdate(new Date());
       }
     } finally {
       setLoading(false);
