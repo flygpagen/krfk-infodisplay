@@ -57,7 +57,17 @@ function callMyWebLogAPI($qtype, $username, $authtoken, $postData = []) {
     
     $data = json_decode($response, true);
     if (json_last_error() !== JSON_ERROR_NONE) {
-        return ['error' => 'Invalid JSON response'];
+        return [
+            'error' => 'Invalid JSON response',
+            'raw_response' => substr($response, 0, 1000),
+            'json_error' => json_last_error_msg()
+        ];
+    }
+    
+    // Check for MyWebLog API error format
+    if (isset($data['Error']) && is_array($data['Error'])) {
+        $errorMsg = $data['Error'][0]['Message'] ?? 'Unknown API error';
+        return ['error' => $errorMsg];
     }
     
     return $data;
@@ -78,7 +88,14 @@ $objectStatusData = callMyWebLogAPI('getObjectStatus', $username, $authtoken, []
 // Check for errors
 if (isset($bookingsData['error'])) {
     http_response_code(502);
-    echo json_encode(['error' => 'Failed to fetch bookings: ' . $bookingsData['error']]);
+    echo json_encode([
+        'error' => 'Failed to fetch bookings: ' . $bookingsData['error'],
+        'debug' => [
+            'raw_response' => $bookingsData['raw_response'] ?? null,
+            'json_error' => $bookingsData['json_error'] ?? null,
+            'username' => substr($username, 0, 4) . '***'
+        ]
+    ]);
     exit;
 }
 
