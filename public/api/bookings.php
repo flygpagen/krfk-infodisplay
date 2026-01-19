@@ -155,13 +155,13 @@ if (isset($bookingsData['queueBookings']) && is_array($bookingsData['queueBookin
 }
 
 foreach ($allBookings as $booking) {
-    $aircraft = $booking['object_registration'] ?? $booking['registration'] ?? '';
-    $pilot = $booking['pilot_name'] ?? $booking['member_name'] ?? '';
-    $startTime = $booking['start_time'] ?? $booking['from_time'] ?? '';
-    $endTime = $booking['end_time'] ?? $booking['to_time'] ?? '';
-    $bookingType = $booking['booking_type'] ?? $booking['type'] ?? '';
+    $aircraft = $booking['regnr'] ?? $booking['object_registration'] ?? $booking['registration'] ?? '';
+    $pilot = $booking['pilotName'] ?? $booking['pilot_name'] ?? $booking['member_name'] ?? '';
+    $startTime = $booking['startTime'] ?? $booking['start_time'] ?? $booking['from_time'] ?? '';
+    $endTime = $booking['endTime'] ?? $booking['end_time'] ?? $booking['to_time'] ?? '';
+    $bookingType = $booking['bookingType'] ?? $booking['booking_type'] ?? $booking['type'] ?? '';
     $remark = $booking['remark'] ?? $booking['comment'] ?? '';
-    $bookingId = $booking['booking_id'] ?? $booking['id'] ?? uniqid();
+    $bookingId = $booking['bookingID'] ?? $booking['booking_id'] ?? $booking['id'] ?? uniqid();
     
     // Format time display
     $displayTime = 'Okänd';
