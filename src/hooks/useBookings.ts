@@ -5,7 +5,6 @@ export interface Booking {
   time: string;
   aircraft: string;
   pilot: string;
-  remark: string;
   status: 'completed' | 'active' | 'upcoming' | 'maintenance';
 }
 
@@ -28,12 +27,10 @@ const API_URL = '/api/bookings.php';
 
 // Demo data for development environment when PHP is not available
 const DEMO_BOOKINGS: Booking[] = [
-  { id: '1', time: '08:00', aircraft: 'SE-KFR', pilot: 'Erik Andersson', remark: 'Skolflygning', status: 'completed' },
-  { id: '2', time: '10:30', aircraft: 'SE-MKL', pilot: 'Anna Svensson', remark: 'XC ESSA', status: 'completed' },
-  { id: '3', time: '13:00', aircraft: 'SE-KFR', pilot: 'Johan Berg', remark: 'Lokalflygning', status: 'active' },
-  { id: '4', time: '15:30', aircraft: 'SE-GKU', pilot: 'Maria Lindqvist', remark: 'Övning', status: 'upcoming' },
-  { id: '5', time: '17:00', aircraft: 'SE-MKL', pilot: 'Peter Holm', remark: '', status: 'upcoming' },
-  { id: '6', time: '09:00', aircraft: 'SE-GKU', pilot: '', remark: 'Underhåll motor', status: 'maintenance' },
+  { id: '3', time: '13:00-14:30', aircraft: 'SE-KFR', pilot: 'Johan Berg', status: 'active' },
+  { id: '4', time: '15:30-17:00', aircraft: 'SE-GKU', pilot: 'Maria Lindqvist', status: 'upcoming' },
+  { id: '5', time: '17:00-18:30', aircraft: 'SE-MKL', pilot: 'Peter Holm', status: 'upcoming' },
+  { id: '6', time: 'Heldag', aircraft: 'SE-GKU', pilot: '', status: 'maintenance' },
 ];
 
 export function useBookings(refreshInterval = 2 * 60 * 1000): UseBookingsResult {

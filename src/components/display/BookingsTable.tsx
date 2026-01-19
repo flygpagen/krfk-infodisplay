@@ -27,8 +27,6 @@ function getStatusStyles(status: Booking['status']) {
 
 function getStatusBadge(status: Booking['status']) {
   switch (status) {
-    case 'completed':
-      return <span className="text-sm lg:text-base px-3 py-1 rounded bg-muted text-muted-foreground">Avslutad</span>;
     case 'active':
       return (
         <span className="text-sm lg:text-base px-3 py-1 rounded bg-green-500/20 text-green-400 animate-pulse">
@@ -48,13 +46,15 @@ export function BookingsTable() {
   const { bookings, loading, error, lastUpdate } = useBookings();
 
   const sortedBookings = useMemo(() => {
-    return [...bookings].sort((a, b) => {
-      const statusOrder = { active: 0, upcoming: 1, maintenance: 2, completed: 3 };
-      if (statusOrder[a.status] !== statusOrder[b.status]) {
-        return statusOrder[a.status] - statusOrder[b.status];
-      }
-      return a.time.localeCompare(b.time);
-    });
+    return [...bookings]
+      .filter(b => b.status !== 'completed')
+      .sort((a, b) => {
+        const statusOrder: Record<string, number> = { active: 0, upcoming: 1, maintenance: 2 };
+        if (statusOrder[a.status] !== statusOrder[b.status]) {
+          return statusOrder[a.status] - statusOrder[b.status];
+        }
+        return a.time.localeCompare(b.time);
+      });
   }, [bookings]);
 
   const remainingFlights = sortedBookings.filter(
@@ -102,14 +102,13 @@ export function BookingsTable() {
               <TableHead className="text-base lg:text-xl font-semibold py-3 lg:py-4">Tid</TableHead>
               <TableHead className="text-base lg:text-xl font-semibold py-3 lg:py-4">Flygplan</TableHead>
               <TableHead className="text-base lg:text-xl font-semibold py-3 lg:py-4">Pilot</TableHead>
-              <TableHead className="text-base lg:text-xl font-semibold py-3 lg:py-4">Anmärkning</TableHead>
               <TableHead className="text-base lg:text-xl font-semibold py-3 lg:py-4 text-right">Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {sortedBookings.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-xl lg:text-2xl text-muted-foreground py-12 lg:py-16">
+                <TableCell colSpan={4} className="text-center text-xl lg:text-2xl text-muted-foreground py-12 lg:py-16">
                   Inga bokningar idag
                 </TableCell>
               </TableRow>
@@ -126,7 +125,6 @@ export function BookingsTable() {
                     <span className="font-bold text-2xl lg:text-3xl">{booking.aircraft}</span>
                   </TableCell>
                   <TableCell className="text-xl lg:text-2xl">{booking.pilot}</TableCell>
-                  <TableCell className="text-lg lg:text-xl text-muted-foreground">{booking.remark || '—'}</TableCell>
                   <TableCell className="text-right">{getStatusBadge(booking.status)}</TableCell>
                 </TableRow>
               ))

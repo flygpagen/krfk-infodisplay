@@ -169,23 +169,24 @@ foreach ($allBookings as $booking) {
     $endMinutes = null;
     
     if ($startTime && $endTime) {
-        // Extract HH:MM from datetime or time string
-        $startParts = explode(' ', $startTime);
-        $endParts = explode(' ', $endTime);
-        $startTimeOnly = count($startParts) > 1 ? $startParts[1] : $startParts[0];
-        $endTimeOnly = count($endParts) > 1 ? $endParts[1] : $endParts[0];
+        // Parse dates to check if multi-day booking
+        $startDate = date('Y-m-d', strtotime($startTime));
+        $endDate = date('Y-m-d', strtotime($endTime));
         
-        // Get HH:MM format
-        $startHM = substr($startTimeOnly, 0, 5);
-        $endHM = substr($endTimeOnly, 0, 5);
-        $displayTime = $startHM . '-' . $endHM;
-        
-        // Calculate minutes for status
-        $startParsed = explode(':', $startHM);
-        $endParsed = explode(':', $endHM);
-        if (count($startParsed) >= 2 && count($endParsed) >= 2) {
-            $startMinutes = (int)$startParsed[0] * 60 + (int)$startParsed[1];
-            $endMinutes = (int)$endParsed[0] * 60 + (int)$endParsed[1];
+        if ($startDate !== $endDate) {
+            // Multi-day booking - show as "Heldag"
+            $displayTime = 'Heldag';
+            $startMinutes = 0;
+            $endMinutes = 24 * 60; // Entire day
+        } else {
+            // Same-day booking - extract HH:MM
+            $startHM = date('H:i', strtotime($startTime));
+            $endHM = date('H:i', strtotime($endTime));
+            $displayTime = $startHM . '-' . $endHM;
+            
+            // Calculate minutes for status
+            $startMinutes = (int)date('H', strtotime($startTime)) * 60 + (int)date('i', strtotime($startTime));
+            $endMinutes = (int)date('H', strtotime($endTime)) * 60 + (int)date('i', strtotime($endTime));
         }
     }
     
@@ -197,7 +198,7 @@ foreach ($allBookings as $booking) {
         $status = $maintenanceObjects[$aircraft];
     }
     // Check for maintenance keywords in remark or type
-    elseif (preg_match('/maintenance|underhåll|kontroll|service/i', $remark . ' ' . $bookingType)) {
+    elseif (preg_match('/maintenance|underhåll|kontroll|service|MAINT/i', $remark . ' ' . $bookingType)) {
         $status = 'maintenance';
     }
     // Check for reserved keywords
@@ -218,7 +219,6 @@ foreach ($allBookings as $booking) {
         'time' => $displayTime,
         'aircraft' => $aircraft,
         'pilot' => $pilot,
-        'remark' => $remark ?: $bookingType,
         'status' => $status,
     ];
 }
