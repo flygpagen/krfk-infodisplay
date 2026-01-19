@@ -1,6 +1,6 @@
 <?php
 /**
- * PHP proxy for MyWebLog bookings using Main API v3.1
+ * PHP proxy for MyWebLog bookings using Main API
  * Fetches booking data and returns structured JSON
  */
 
@@ -26,24 +26,19 @@ if (empty($username) || empty($authtoken)) {
 
 /**
  * Make API call to MyWebLog Main API
+ * According to docs: only qtype, username, authtoken headers required
  */
 function callMyWebLogAPI($qtype, $username, $authtoken, $postData = []) {
     $ch = curl_init('https://api.myweblog.se/api_main.php');
-    
-    // Include apiver in POST data as well as header for compatibility
-    $postData['apiver'] = '3.1';
     
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST => true,
         CURLOPT_POSTFIELDS => http_build_query($postData),
         CURLOPT_HTTPHEADER => [
-            'Content-Type: application/x-www-form-urlencoded',
-            'Accept: application/json',
             'qtype: ' . $qtype,
             'username: ' . $username,
             'authtoken: ' . $authtoken,
-            'apiver: 3.1',
         ],
         CURLOPT_TIMEOUT => 15,
     ]);
@@ -54,11 +49,22 @@ function callMyWebLogAPI($qtype, $username, $authtoken, $postData = []) {
     curl_close($ch);
     
     if ($error) {
-        return ['error' => $error];
+        return ['error' => 'cURL error: ' . $error];
     }
     
     if ($httpCode !== 200) {
         return ['error' => 'HTTP ' . $httpCode];
+    }
+    
+    // Check if response is XML (error response)
+    if (strpos($response, '<?xml') === 0) {
+        $xml = @simplexml_load_string($response);
+        if ($xml && isset($xml->Error)) {
+            $errorCode = (string)($xml->Error->ErrorCode ?? 'Unknown');
+            $errorMsg = (string)($xml->Error->Message ?? 'Unknown error');
+            return ['error' => "API Error $errorCode: $errorMsg"];
+        }
+        return ['error' => 'Unexpected XML response', 'raw_response' => substr($response, 0, 500)];
     }
     
     $data = json_decode($response, true);
@@ -70,10 +76,16 @@ function callMyWebLogAPI($qtype, $username, $authtoken, $postData = []) {
         ];
     }
     
-    // Check for MyWebLog API error format
+    // Check for MyWebLog API error format in JSON
     if (isset($data['Error']) && is_array($data['Error'])) {
         $errorMsg = $data['Error'][0]['Message'] ?? 'Unknown API error';
         return ['error' => $errorMsg];
+    }
+    
+    // The API returns data under {qtype}Result key according to docs
+    $resultKey = $qtype . 'Result';
+    if (isset($data[$resultKey])) {
+        return $data[$resultKey];
     }
     
     return $data;
