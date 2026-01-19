@@ -30,11 +30,16 @@ if (empty($username) || empty($authtoken)) {
 function callMyWebLogAPI($qtype, $username, $authtoken, $postData = []) {
     $ch = curl_init('https://api.myweblog.se/api_main.php');
     
+    // Include apiver in POST data as well as header for compatibility
+    $postData['apiver'] = '3.1';
+    
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST => true,
         CURLOPT_POSTFIELDS => http_build_query($postData),
         CURLOPT_HTTPHEADER => [
+            'Content-Type: application/x-www-form-urlencoded',
+            'Accept: application/json',
             'qtype: ' . $qtype,
             'username: ' . $username,
             'authtoken: ' . $authtoken,
