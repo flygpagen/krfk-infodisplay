@@ -25,7 +25,7 @@ if (empty($apiKey)) {
     exit;
 }
 
-$icao = 'ESMK';
+$icao = defined('ICAO_CODE') ? ICAO_CODE : 'ESMK';
 $metarUrl = "https://api.checkwx.com/metar/{$icao}/decoded";
 $tafUrl = "https://api.checkwx.com/taf/{$icao}/decoded";
 
