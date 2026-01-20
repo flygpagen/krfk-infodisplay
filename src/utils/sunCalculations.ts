@@ -1,9 +1,6 @@
 // Sun position calculations for civil twilight, sunrise, and sunset
 // Based on NOAA Solar Calculator algorithms
 
-const ESMK_LAT = 55.92;
-const ESMK_LON = 14.08;
-
 interface SunTimes {
   civilDawn: Date;
   sunrise: Date;
@@ -27,7 +24,7 @@ function toDegrees(radians: number): number {
   return radians * (180 / Math.PI);
 }
 
-function calculateSunTimes(date: Date, lat: number = ESMK_LAT, lon: number = ESMK_LON): SunTimes {
+function calculateSunTimes(date: Date, lat: number, lon: number): SunTimes {
   const jd = toJulianDate(date);
   const n = Math.floor(jd - 2451545.0 + 0.0008);
   
@@ -85,11 +82,15 @@ function calculateSunTimes(date: Date, lat: number = ESMK_LAT, lon: number = ESM
   };
 }
 
-export function getSunTimesForDate(date: Date = new Date()): SunTimes {
+export function getSunTimesForDate(
+  date: Date = new Date(),
+  lat: number,
+  lon: number
+): SunTimes {
   // Set to noon of the given date for calculation
   const calcDate = new Date(date);
   calcDate.setHours(12, 0, 0, 0);
-  return calculateSunTimes(calcDate);
+  return calculateSunTimes(calcDate, lat, lon);
 }
 
 export function formatTimeUTC(date: Date): string {
