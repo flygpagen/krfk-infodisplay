@@ -1,3 +1,4 @@
+<img width="1445" height="1093" alt="infodisp" src="https://github.com/user-attachments/assets/a4e9202d-c951-4c1f-bfee-c9bbbbaba7af" />
 # Welcome to your Lovable project
 
 ## Project info
