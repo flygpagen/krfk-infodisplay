@@ -95,7 +95,7 @@ export function WeatherPanel() {
   }
 
   // Find the ceiling (lowest BKN or OVC layer) or show most significant layer
-  const ceilingLayer = metar.clouds.find(c => c.cover === 'BKN' || c.cover === 'OVC');
+  const ceilingLayer = metar.clouds.find(c => c.cover === 'Brutet' || c.cover === 'Täckt');
   const cloudDesc = metar.clouds.length > 0 
     ? ceilingLayer 
       ? `${ceilingLayer.cover} ${ceilingLayer.altitude}ft`
@@ -106,7 +106,7 @@ export function WeatherPanel() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between mb-3 lg:mb-5">
+      <div className="flex items-center justify-between mb-3 lg:mb-5 min-h-[40px] lg:min-h-[52px]">
         <div className="flex items-center gap-3 lg:gap-4">
           <h2 className="text-xl lg:text-3xl font-semibold text-foreground">Väder</h2>
           <span className={`text-lg lg:text-2xl font-bold px-3 lg:px-4 py-1 lg:py-2 rounded ${getFlightCategoryColor(metar.flightCategory)} bg-current/10`}>
