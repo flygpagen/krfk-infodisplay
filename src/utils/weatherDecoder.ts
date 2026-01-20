@@ -120,12 +120,12 @@ export function decodeMetar(metar: string): DecodedMetar {
     }
     
     // Clouds
-    const cloudMatch = part.match(/^(FEW|SCT|BKN|OVC|SKC|CLR|NSC|NCD)(\d{3})?(CB|TCU)?$/);
+    const cloudMatch = part.match(/^(FEW|SCT|BKN|OVC|SKC|CLR|NSC|NCD)(\d{3})?(\/\/\/|CB|TCU)?$/);
     if (cloudMatch) {
       clouds.push({
         cover: CLOUD_COVER_MAP[cloudMatch[1]] || cloudMatch[1],
         altitude: cloudMatch[2] ? parseInt(cloudMatch[2]) * 100 : 0,
-        type: cloudMatch[3],
+        type: cloudMatch[3] === '///' ? undefined : cloudMatch[3],
       });
       continue;
     }

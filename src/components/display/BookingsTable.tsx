@@ -64,7 +64,7 @@ export function BookingsTable() {
       </div>;
   }
   return <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between mb-3 lg:mb-5">
+      <div className="flex items-center justify-between mb-3 lg:mb-5 min-h-[40px] lg:min-h-[52px]">
         <h2 className="text-xl lg:text-3xl font-semibold text-foreground">Dagens bokningar</h2>
         <div className="flex items-center gap-4 lg:gap-6">
           
