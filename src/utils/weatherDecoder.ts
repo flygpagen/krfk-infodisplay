@@ -12,6 +12,13 @@ export interface DecodedMetar {
   } | null;
   visibility: string;
   visibilityMeters: number;
+  visibilityCause?: string;
+  rvr: Array<{
+    runway: string;
+    visibility: number;
+    variableMax?: number;
+    trend?: 'U' | 'D' | 'N';
+  }>;
   clouds: Array<{
     cover: string;
     altitude: number;
@@ -37,20 +44,59 @@ const CLOUD_COVER_MAP: Record<string, string> = {
   'CAVOK': 'CAVOK',
 };
 
+// Siktnedsättande fenomen (obscuration)
+const OBSCURATION_PHENOMENA: Record<string, string> = {
+  'BR': 'dis',
+  'FG': 'dimma',
+  'HZ': 'dis',
+  'FU': 'rök',
+  'DU': 'damm',
+  'SA': 'sand',
+  'VA': 'vulkanaska',
+};
+
 const WEATHER_PHENOMENA: Record<string, string> = {
-  'RA': 'Rain',
-  'SN': 'Snow',
-  'DZ': 'Drizzle',
-  'FG': 'Fog',
-  'BR': 'Mist',
-  'HZ': 'Haze',
-  'TS': 'Thunderstorm',
-  'SH': 'Showers',
-  'GR': 'Hail',
-  'FZ': 'Freezing',
-  'VC': 'Vicinity',
-  '+': 'Heavy',
-  '-': 'Light',
+  // Intensity
+  '+': 'Kraftig',
+  '-': 'Lätt',
+  
+  // Descriptors
+  'MI': 'Låg',
+  'BC': 'Fläckvis',
+  'PR': 'Delvis',
+  'DR': 'Drivande',
+  'BL': 'Blåsande',
+  'SH': 'Skurar',
+  'TS': 'Åska',
+  'FZ': 'Underkyld',
+  'VC': 'I närheten',
+  
+  // Precipitation
+  'RA': 'Regn',
+  'SN': 'Snö',
+  'DZ': 'Duggregn',
+  'GR': 'Hagel',
+  'GS': 'Småhagel',
+  'IC': 'Iskristaller',
+  'SG': 'Snökorn',
+  'PL': 'Ispellets',
+  'UP': 'Okänd nederbörd',
+  
+  // Obscuration
+  'FG': 'Dimma',
+  'BR': 'Dis',
+  'HZ': 'Dis',
+  'FU': 'Rök',
+  'DU': 'Damm',
+  'SA': 'Sand',
+  'VA': 'Vulkanaska',
+  
+  // Other
+  'PO': 'Sandvirvlar',
+  'SQ': 'Vindby',
+  'FC': 'Trattmoln',
+  'DS': 'Sandstorm',
+  'SS': 'Sandstorm',
 };
 
 export function decodeMetar(metar: string): DecodedMetar {
@@ -61,6 +107,8 @@ export function decodeMetar(metar: string): DecodedMetar {
   let wind = null;
   let visibility = 'CAVOK';
   let visibilityMeters = 9999;
+  let visibilityCause: string | undefined = undefined;
+  const rvr: DecodedMetar['rvr'] = [];
   const clouds: DecodedMetar['clouds'] = [];
   let temperature = 0;
   let dewpoint = 0;
@@ -119,6 +167,25 @@ export function decodeMetar(metar: string): DecodedMetar {
       continue;
     }
     
+    // RVR: R28/0600 eller R28/0600V1000 eller R28/0600U eller R28L/0300V0600D
+    const rvrMatch = part.match(/^R(\d{2}[LCR]?)\/([PM]?)(\d{4})(V(\d{4}))?([UDN])?$/);
+    if (rvrMatch) {
+      rvr.push({
+        runway: rvrMatch[1],
+        visibility: parseInt(rvrMatch[3]),
+        variableMax: rvrMatch[5] ? parseInt(rvrMatch[5]) : undefined,
+        trend: rvrMatch[6] as 'U' | 'D' | 'N' | undefined,
+      });
+      continue;
+    }
+    
+    // Obscuration phenomena (visibility cause)
+    if (OBSCURATION_PHENOMENA[part]) {
+      visibilityCause = OBSCURATION_PHENOMENA[part];
+      conditions.push(WEATHER_PHENOMENA[part] || part);
+      continue;
+    }
+    
     // Clouds
     const cloudMatch = part.match(/^(FEW|SCT|BKN|OVC|SKC|CLR|NSC|NCD)(\d{3})?(\/\/\/|CB|TCU)?$/);
     if (cloudMatch) {
@@ -172,6 +239,8 @@ export function decodeMetar(metar: string): DecodedMetar {
     wind,
     visibility,
     visibilityMeters,
+    visibilityCause,
+    rvr,
     clouds,
     temperature,
     dewpoint,
