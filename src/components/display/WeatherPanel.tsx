@@ -144,6 +144,7 @@ export function WeatherPanel() {
             icon={Eye} 
             label="Sikt" 
             value={metar.visibility}
+            subValue={metar.visibilityCause ? `i ${metar.visibilityCause}` : undefined}
           />
           <WeatherStat 
             icon={Cloud} 
@@ -163,6 +164,27 @@ export function WeatherPanel() {
             subValue={metar.pressureUnit}
           />
         </div>
+
+        {/* RVR section */}
+        {metar.rvr && metar.rvr.length > 0 && (
+          <div className="p-3 lg:p-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
+            <span className="text-xs lg:text-sm text-amber-400 uppercase tracking-wider font-medium">Bansikt (RVR)</span>
+            <div className="flex flex-wrap gap-3 lg:gap-4 mt-2">
+              {metar.rvr.map((r, i) => (
+                <div key={i} className="flex items-baseline gap-1">
+                  <span className="text-sm lg:text-base text-muted-foreground">Bana {r.runway}:</span>
+                  <span className="text-lg lg:text-xl font-semibold">
+                    {r.visibility}m
+                    {r.variableMax && `–${r.variableMax}m`}
+                  </span>
+                  {r.trend === 'U' && <span className="text-green-400 ml-1">↑</span>}
+                  {r.trend === 'D' && <span className="text-red-400 ml-1">↓</span>}
+                  {r.trend === 'N' && <span className="text-muted-foreground ml-1">→</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Raw METAR/TAF */}
         <div className="mt-3 lg:mt-4 space-y-2">
