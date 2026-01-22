@@ -156,6 +156,12 @@ if (isset($bookingsData['queueBookings']) && is_array($bookingsData['queueBookin
 
 foreach ($allBookings as $booking) {
     $aircraft = $booking['regnr'] ?? '';
+    
+    // Filter: Only include aircraft (Swedish registration format SE-XXX)
+    if (!preg_match('/^SE-[A-Z]{3}$/', $aircraft)) {
+        continue;
+    }
+    
     $pilot = $booking['userFullname'] ?? $booking['studentFullname'] ?? '';
     $startTime = $booking['bStart'] ?? $booking['bStartDT'] ?? '';
     $endTime = $booking['bEnd'] ?? $booking['bEndDT'] ?? '';
