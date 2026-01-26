@@ -13,6 +13,7 @@ export interface DecodedMetar {
   visibility: string;
   visibilityMeters: number;
   visibilityCause?: string;
+  verticalVisibility?: number;  // VV i fot (t.ex. VV016 = 1600 ft)
   rvr: Array<{
     runway: string;
     visibility: number;
@@ -108,6 +109,7 @@ export function decodeMetar(metar: string): DecodedMetar {
   let visibility = 'CAVOK';
   let visibilityMeters = 9999;
   let visibilityCause: string | undefined = undefined;
+  let verticalVisibility: number | undefined = undefined;
   const rvr: DecodedMetar['rvr'] = [];
   const clouds: DecodedMetar['clouds'] = [];
   let temperature = 0;
@@ -186,6 +188,46 @@ export function decodeMetar(metar: string): DecodedMetar {
       continue;
     }
     
+    // Weather phenomena with intensity prefix (e.g., -SN, +RA, VCSH)
+    const wxMatch = part.match(/^([+-]|VC)?([A-Z]{2,})$/);
+    if (wxMatch && !part.match(/^[A-Z]{4}$/) && !part.match(/^\d{6}Z$/)) {
+      const intensity = wxMatch[1] || '';
+      const phenomenon = wxMatch[2];
+      
+      // Check if it's a known phenomenon
+      if (WEATHER_PHENOMENA[phenomenon] || OBSCURATION_PHENOMENA[phenomenon]) {
+        // Check for precipitation that can affect visibility
+        if (['SN', 'RA', 'DZ', 'SG', 'GR', 'GS', 'PL', 'IC'].includes(phenomenon)) {
+          const intensityText = intensity === '-' ? 'lätt ' : intensity === '+' ? 'kraftig ' : '';
+          visibilityCause = intensityText + (WEATHER_PHENOMENA[phenomenon] || phenomenon).toLowerCase();
+        }
+        // Check for obscuration (affects visibility cause)
+        else if (OBSCURATION_PHENOMENA[phenomenon] && !visibilityCause) {
+          visibilityCause = OBSCURATION_PHENOMENA[phenomenon];
+        }
+        
+        // Add to conditions list
+        const desc = WEATHER_PHENOMENA[phenomenon] || phenomenon;
+        if (intensity === '-') {
+          conditions.push(`Lätt ${desc.toLowerCase()}`);
+        } else if (intensity === '+') {
+          conditions.push(`Kraftig ${desc.toLowerCase()}`);
+        } else if (intensity === 'VC') {
+          conditions.push(`${desc} i närheten`);
+        } else if (!conditions.includes(desc)) {
+          conditions.push(desc);
+        }
+        continue;
+      }
+    }
+    
+    // Vertical Visibility (VV016 = 1600 ft)
+    const vvMatch = part.match(/^VV(\d{3})$/);
+    if (vvMatch) {
+      verticalVisibility = parseInt(vvMatch[1]) * 100;
+      continue;
+    }
+    
     // Clouds
     const cloudMatch = part.match(/^(FEW|SCT|BKN|OVC|SKC|CLR|NSC|NCD)(\d{3})?(\/\/\/|CB|TCU)?$/);
     if (cloudMatch) {
@@ -221,7 +263,10 @@ export function decodeMetar(metar: string): DecodedMetar {
   }
   
   // Calculate flight category (use Swedish cloud cover names)
-  const ceiling = clouds.find(c => c.cover === 'Brutet' || c.cover === 'Täckt')?.altitude || 99999;
+  // Vertical visibility counts as ceiling
+  const ceiling = verticalVisibility || 
+    clouds.find(c => c.cover === 'Brutet' || c.cover === 'Täckt')?.altitude || 
+    99999;
   let flightCategory: DecodedMetar['flightCategory'] = 'VFR';
   
   if (visibilityMeters < 1600 || ceiling < 500) {
@@ -240,6 +285,7 @@ export function decodeMetar(metar: string): DecodedMetar {
     visibility,
     visibilityMeters,
     visibilityCause,
+    verticalVisibility,
     rvr,
     clouds,
     temperature,
