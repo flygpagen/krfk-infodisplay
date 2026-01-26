@@ -94,15 +94,22 @@ export function WeatherPanel() {
     return <div className="animate-pulse bg-muted/20 rounded-lg h-full" />;
   }
 
-  // Find the ceiling (lowest BKN or OVC layer) or show most significant layer
+  // Find the ceiling or vertical visibility
   const ceilingLayer = metar.clouds.find(c => c.cover === 'Brutet' || c.cover === 'Täckt');
-  const cloudDesc = metar.clouds.length > 0 
-    ? ceilingLayer 
-      ? `${ceilingLayer.cover} ${ceilingLayer.altitude}ft`
-      : metar.clouds[0].altitude > 0 
-        ? `${metar.clouds[0].cover} ${metar.clouds[0].altitude}ft`
-        : metar.clouds[0].cover
-    : 'CAVOK';
+  
+  let cloudDesc: string;
+  if (metar.verticalVisibility) {
+    // Vertical visibility - sky obscured
+    cloudDesc = `VV ${metar.verticalVisibility}ft`;
+  } else if (ceilingLayer) {
+    cloudDesc = `${ceilingLayer.cover} ${ceilingLayer.altitude}ft`;
+  } else if (metar.clouds.length > 0) {
+    cloudDesc = metar.clouds[0].altitude > 0 
+      ? `${metar.clouds[0].cover} ${metar.clouds[0].altitude}ft`
+      : metar.clouds[0].cover;
+  } else {
+    cloudDesc = 'CAVOK';
+  }
 
   return (
     <div className="flex flex-col h-full">
